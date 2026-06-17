@@ -1,0 +1,634 @@
+{
+  "name": "Used Cars Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "include": "selected",
+        "includeFields": "output[0].content[0].text",
+        "options": {}
+      },
+      "id": "78a853f4-3346-4bb5-8f11-73971cdfdcae",
+      "name": "Extract Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        1408,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $('File Name').item.json.filename }}_versions.md",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1XfAOclsX8oOcSmIDza6jsbOXerbixWKH",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "id": "63a6b301-9d6f-44de-84b2-63ffc7d2bf51",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1856,
+        48
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jSwYlqAZiLDYbeii",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "used-cars",
+        "formTitle": "Used Cars Intake",
+        "formDescription": "Enter the vehicle details to generate the markdown output.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Make",
+              "placeholder": "VW",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Model",
+              "placeholder": "Golf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "012ebb49-ccef-414e-8f68-20a532fb5306",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -256
+      ],
+      "webhookId": "50d3ed56-8bbd-4362-ad19-fc09e50af5f1"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "fileName": "={{ $('File Name').item.json.filename }}_versions.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        48
+      ],
+      "id": "a122533e-3d2b-449e-a1ba-187e8f38efd6",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output[0].content[0].text;\n\nconst parsed = JSON.parse(raw);\n\nreturn [{ json: parsed }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        -256
+      ],
+      "id": "7b0dd618-ac56-4232-83dc-22f7b1231e74",
+      "name": "Parse generations"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.4-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Make: {{ $('Form Trigger').item.json.Make }},\nModel: {{ $('Form Trigger').item.json.Model }},"
+            },
+            {
+              "role": "system",
+              "content": "You are a helpful assistant who researches vehicle data to help potential buyers of used cars.\n\nFor the make and model given by the user, list all generations with their year ranges. Return a JSON with a list of generations.\n\nIf there are any widely known manufacturer codes, return them as well. If there restylings/facelifts, include them too with their own list entries.\n\nIn case of ambiguity, return European-market models.\n\nIf there is only one generation for a model, return just that generation. Do not anticipate and return the versions within that generation.\n\nExamples:\n\nInputs: Make: BMW, Model: 3 series\nOutput: {\"generations\": [\"1975 - 1981, E21\", \"1982 - 1990, E30\", \"1990 - 1997, E36\", \"1997 - 2004, E46\", \"2005 - 2008, E90\", \"2008 - 2011, E90 facelift (LCI)\"...]}\n\nInputs: Make: Nissan, Model: Skyline\nOutput: {\"generations\": [..., \"1989 - 1993, R32\", \"1993 - 1998, R33\", \"1998 - 2002, R34\"]}\n\nInputs: Make: Ford, Model: Focus\nOutput: {\"generations\": [\"1998 - 2004, mk1\", \"2004 - 2010, mk2\", \"2010 - 2018, mk3\", \"2018 - 2025, mk4\"]}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1280,
+        -256
+      ],
+      "id": "c1a9539c-acd9-42bd-8aef-e5a878b7b60d",
+      "name": "Search generations",
+      "credentials": {
+        "openAiApi": {
+          "id": "nGqWVzoMnfwoB9VX",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const generations = $input.first().json.generations;\n\nconst numbered = generations\n  .map((g, i) => `${i + 1}. ${g}`)\n  .join('\\n');\n\nreturn [{ json: { generations, numbered } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        -256
+      ],
+      "id": "94b6e905-f860-49dc-be5e-a884bf4a0570",
+      "name": "Generations string"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Choose the desired generation",
+        "formDescription": "=Generations of the chosen car model:\n\n{{ $json.numbered }}",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter the number of the generation",
+              "placeholder": "0",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        -256
+      ],
+      "id": "b76fb952-382d-468f-b860-1094f46127b9",
+      "name": "Choose generation",
+      "webhookId": "5dbb6555-c6f3-4ca0-935c-f07faa38e5c7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const index = parseInt($input.first().json['Enter the number of the generation']) - 1;\nconst generations = $('Parse generations').first().json.generations;\n\nconst selectedGeneration = generations[index];\n\nreturn [{ json: { selectedGeneration } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        48
+      ],
+      "id": "3bb8dd64-7fb4-497e-95f4-bc32c9aa4985",
+      "name": "Parse chosen generation"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.4-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Make: {{ $('Form Trigger').item.json.Make }},\nModel: {{ $('Form Trigger').item.json.Model }},\nGeneration: {{ $json.selectedGeneration }},"
+            },
+            {
+              "role": "system",
+              "content": "You are a helpful assistant who researches vehicle data to help potential buyers of used cars.\n\nFor the make and model and generation given by the user, search:\n- All possible body types (sedan, coupe, 3 or 5 door hatchback, mpv...), including the brand-specific nomenclature\n- All possible powertrain options for each body type (combustion engines and/other electric motors including the configuration, max power in hp, max torque in Nm, battery sizes if electric, gearbox choices if combustion, driven wheels). If there are commercial names for the powertrains or specific trim levels associated to them, include them.\n\nReturn only this information, and it in md formatting\n\nExample 1:\n\n## Saloon and Estate\n2.0 L petrol, Inline 4, 250 HP, 300 Nm, 8-speed automatic, RWD\n3.0 L petrol, Inline 6 MHEV, 380 HP, 500 Nm, 7-speed dual clutch, AWD\n3.0 L diesel, inline 6, 300 HP, 500 Nm, 8-speed automatic, RWD\n\n# Coupé\n3.0 L petrol, Inline 6 MHEV, 380 HP, 500 Nm, 7-speed dual clutch, RWD\n4.0 L petrol, V8, 500 HP, 750 Nm, 7-speed dual clutch, AWD\n\nExample 2:\n\n# 5-door hatchback\nBase: 1.0 L petrol, Inline 3, 100 HP, 150 Nm, 6-speed manual, FWD\nBase: 1.0 L petrol, Inline 3, 100 HP, 150 Nm, 6-speed dual clutch, FWD\nGTI: 2.0 L petrol, Inline 4, 200 HP, 320 Nm, 6-speed dual clutch, FWD\nEco: BEV, 150 HP, 300 Nm, 60 kWh, FWD"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        48
+      ],
+      "id": "070f80d4-ac3e-4364-b4aa-590876ea95ab",
+      "name": "Variants of a generation",
+      "credentials": {
+        "openAiApi": {
+          "id": "nGqWVzoMnfwoB9VX",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U0ATSS60P51",
+          "mode": "list",
+          "cachedResultName": "cmartinezboto"
+        },
+        "text": "=Versions for the vehicle {{ $('Form Trigger').item.json.Make }} {{ $('Form Trigger').item.json.Model }} ({{ $('Parse chosen generation').item.json.selectedGeneration }}) saved!\n\nURL: {{ $json.webViewLink }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        2080,
+        48
+      ],
+      "id": "e734b9b2-110d-4407-b9c5-5fc4e6841965",
+      "name": "Send a message",
+      "webhookId": "3cb579f0-3c15-40fe-bab8-f6aa33aea7ef",
+      "credentials": {
+        "slackApi": {
+          "id": "FnVkIHf9RGnWVjZB",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.4-mini",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Make: {{ $('Form Trigger').item.json.Make }},\nModel: {{ $('Form Trigger').item.json.Model }},\nGeneration: {{ $('Parse chosen generation').item.json.selectedGeneration }},\nVersion: {{ $json['Enter a version description:'] }}"
+            },
+            {
+              "role": "system",
+              "content": "You are a helpful assistant who researches vehicle data to help potential buyers of used cars.\n\nFor the make, model, generation and version given by the user, search:\n- Optional equipment that the vehicle could have (examples: wheels, suspension/steering/brakes upgrades, driver assistance systems, sports/heated/massage seats, upholstery, infotainment systems, sunroof...)\n- Known reliability issues\n- Specific maintenance for that vehicle\n\nIf possible, include the brand-specific commercial names.\n\nReturn only this information, and in md formatting"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        368
+      ],
+      "id": "39427785-2097-41ba-9e6f-732f3cffa0d6",
+      "name": "Details of a variant",
+      "credentials": {
+        "openAiApi": {
+          "id": "nGqWVzoMnfwoB9VX",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "include": "selected",
+        "includeFields": "output[0].content[0].text",
+        "options": {}
+      },
+      "id": "85649689-f743-4264-aff2-a3444afdd14b",
+      "name": "Extract Text1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        1408,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $('File Name').item.json.filename }}_details.md",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1XfAOclsX8oOcSmIDza6jsbOXerbixWKH",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "id": "6dcc3310-5bae-472d-9220-130e32407883",
+      "name": "Upload to Google Drive1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1856,
+        368
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jSwYlqAZiLDYbeii",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "fileName": "={{ $('File Name').item.json.filename }}_details.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        368
+      ],
+      "id": "64abe024-e605-4f6c-94dd-0901bbfaa3fd",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U0ATSS60P51",
+          "mode": "list",
+          "cachedResultName": "cmartinezboto"
+        },
+        "text": "=Details for the vehicle {{ $('Form Trigger').item.json.Make }} {{ $('Form Trigger').item.json.Model }} ({{ $('Enter version').item.json['Enter a version description:'] }}) saved!\n\nURL: {{ $json.webViewLink }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        2080,
+        368
+      ],
+      "id": "bf254a25-10f0-4348-905e-059a41af3c5a",
+      "name": "Send a message1",
+      "webhookId": "3cb579f0-3c15-40fe-bab8-f6aa33aea7ef",
+      "credentials": {
+        "slackApi": {
+          "id": "FnVkIHf9RGnWVjZB",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Car version picker",
+        "formDescription": "=Enter a vehicle version to analyse it",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter a version description:",
+              "placeholder": "GTI TCR Hatchback",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        368
+      ],
+      "id": "8c2de144-25fd-459c-bc3f-d04bf015da5b",
+      "name": "Enter version",
+      "webhookId": "5dbb6555-c6f3-4ca0-935c-f07faa38e5c7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const submitted = $input.first().json.submittedAt;\nconst dt = new Date(submitted);\n\nconst parts = new Intl.DateTimeFormat('en-CA', {\n  timeZone: 'Europe/Berlin',\n  year: 'numeric', month: '2-digit', day: '2-digit',\n  hour: '2-digit', minute: '2-digit', second: '2-digit',\n  hour12: false\n}).formatToParts(dt);\n\nconst get = (type) => parts.find(p => p.type === type).value;\nconst date = `${get('year')}${get('month')}${get('day')}`;\nconst time = `${get('hour')}${get('minute')}${get('second')}`;\n\nconst make  = $input.first().json.Make.toLowerCase();\nconst model = $input.first().json.Model.toLowerCase();\n\nreturn [{ json: { filename: `${date}_${time}_${make}_${model}` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        -256
+      ],
+      "id": "50ab71aa-c334-4434-9cb0-2f60a18bd62a",
+      "name": "File Name"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract Text": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "File Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse generations": {
+      "main": [
+        [
+          {
+            "node": "Generations string",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search generations": {
+      "main": [
+        [
+          {
+            "node": "Parse generations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generations string": {
+      "main": [
+        [
+          {
+            "node": "Choose generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose generation": {
+      "main": [
+        [
+          {
+            "node": "Parse chosen generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse chosen generation": {
+      "main": [
+        [
+          {
+            "node": "Variants of a generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variants of a generation": {
+      "main": [
+        [
+          {
+            "node": "Extract Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Details of a variant": {
+      "main": [
+        [
+          {
+            "node": "Extract Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Enter version",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enter version": {
+      "main": [
+        [
+          {
+            "node": "Details of a variant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Name": {
+      "main": [
+        [
+          {
+            "node": "Search generations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "df188404-1f62-470e-824e-c2a5ebb9a4a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22da431d4cf31791a8cb92db8a21ea7c2a3f630659701fa99f91fb1590ee6312"
+  },
+  "id": "NIU1NbxWIRk3RBDH",
+  "tags": []
+}
