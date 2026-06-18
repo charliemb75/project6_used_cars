@@ -63,56 +63,75 @@ How this feeds the business case:
 
 For a more polished commercial version with stronger automation, broader model coverage, and continuous content maintenance, both upfront and ongoing costs would be higher than these MVP-level numbers.
 
-## Indicative Price Per Report
+## Business Value for Customers
 
-Based on the research, the tool should be priced well below human inspection-style services, which are often around 300 EUR per vehicle, while still leaving room to cover AI usage, support, and product maintenance.
-
-The suggestion is a hybrid pricing model:
-* **Occasional/private users:** 14.99-29.99 EUR per report, or 4.99-9.99 EUR per report if the report page includes advertising or sponsored placements
-* **Dealerships:** 4.99-12.99 EUR per report at volume, or a monthly subscription for frequent use, at around 99.99 EUR
-* Premium reports with deeper listing comparison or more detailed model coverage could be priced above this range
-
-As a starting point, 19.99 EUR per report is a reasonable MVP price for private users without ads, because it is low enough to feel accessible but high enough to signal value and support operating costs.
-
-## Quantified Business Value
-
-The business value should be estimated in three parts:
+The customer value should be estimated in two parts:
 * **Time saved** from replacing manual car research and comparison
-* **Revenue gained** from report sales and subscriptions
 * **Cost avoided** from reducing bad recommendations, duplicated research, and outsourced advisory work
 
 The following scenario assumptions are intentionally simple and conservative:
 * Average time saved per report: 30 minutes
 * Imputed value of time: 20 EUR / hour
-* Effective private report revenue: 15 EUR per report
-* Dealership subscription revenue: 150 EUR per dealership per month at the 12-month horizon, increasing with adoption and account depth by 36 months
 * Cost avoided: scales with support load, repeated research, and advisory effort as the product matures
 
 | Value stream | Conservative 12m | Conservative 36m | Realistic 12m | Realistic 36m | Optimistic 12m | Optimistic 36m |
 |---|---:|---:|---:|---:|---:|---:|
 | Time saved | 200 EUR / month | 600 EUR / month | 1,000 EUR / month | 4,000 EUR / month | 3,000 EUR / month | 12,000 EUR / month |
-| Revenue gained | 450 EUR / month | 1,500 EUR / month | 2,250 EUR / month | 8,700 EUR / month | 6,750 EUR / month | 25,500 EUR / month |
 | Cost avoided | 100 EUR / month | 250 EUR / month | 400 EUR / month | 900 EUR / month | 1,000 EUR / month | 3,000 EUR / month |
-| **Total business value** | **750 EUR / month** | **2,350 EUR / month** | **3,650 EUR / month** | **13,600 EUR / month** | **10,750 EUR / month** | **40,500 EUR / month** |
+| **Total customer value** | **300 EUR / month** | **850 EUR / month** | **1,400 EUR / month** | **4,900 EUR / month** | **4,000 EUR / month** | **15,000 EUR / month** |
 
-Annualized, this corresponds to:
-* Conservative: 9,000 EUR / year at 12 months, 28,200 EUR / year at 36 months
-* Realistic: 43,800 EUR / year at 12 months, 163,200 EUR / year at 36 months
-* Optimistic: 129,000 EUR / year at 12 months, 486,000 EUR / year at 36 months
+Annualized customer value:
+* Conservative: 3,600 EUR / year at 12 months, 10,200 EUR / year at 36 months
+* Realistic: 16,800 EUR / year at 12 months, 58,800 EUR / year at 36 months
+* Optimistic: 48,000 EUR / year at 12 months, 180,000 EUR / year at 36 months
+
+## Price Per Report
+
+Based on the research, the tool should be priced well below human inspection-style services, which are often around 300 EUR per vehicle, while still leaving room to cover AI usage, support, and product maintenance. It should be low enough to feel accessible but high enough to signal value and support operating costs.
+
+The suggestion is a hybrid pricing model:
+* **Occasional/private users:** 15-30 EUR per report, or 5-10 EUR per report if the report page includes advertising or sponsored placements
+* **Dealerships:** 5-15 EUR per report at volume, or a monthly subscription for frequent use, at around 100 EUR
+* Premium reports with deeper listing comparison or more detailed model coverage could be priced above this range
+
+For the revenue model below, the initial estimation uses round numbers and a baseline private report price of **15 EUR per report**. The monthly dealership fee remains **100 EUR**, because a recurring subscription is easier to justify for frequent use than per-report billing.
+
+This pricing is plausible because:
+* the report can save time and reduce the chance of a bad purchase decision
+* even a small reduction in search effort or repair risk can justify a price above a basic consumer subscription
+* dealership users are likely to generate repeated value, so a monthly fee remains well below the potential benefit
+
+## Developer Revenue
+
+Developer revenue should be estimated from the demand forecast and the chosen price points, not from the customer value table.
+
+The revenue assumptions are:
+* Private report price: 15 EUR
+* Dealership subscription price: 100 EUR per month
+
+To follow the demand curve above, revenue is calculated as a gradual ramp:
+* **12-month revenue** assumes a linear ramp from zero to the 12-month demand level across the first 12 months.
+* **36-month revenue** assumes a linear ramp from zero to the 12-month demand level across months 1-12, and then a linear ramp from the 12-month level to the 36-month level across months 13-36.
+
+| Revenue stream | Conservative 12m | Conservative 36m | Realistic 12m | Realistic 36m | Optimistic 12m | Optimistic 36m |
+|---|---:|---:|---:|---:|---:|---:|
+| Private report revenue | 1,800.00 EUR | 16,200.00 EUR | 9,000.00 EUR | 99,000.00 EUR | 27,000.00 EUR | 297,000.00 EUR |
+| Dealership subscription revenue | 600.00 EUR | 6,600.00 EUR | 3,000.00 EUR | 30,600.00 EUR | 9,000.00 EUR | 87,000.00 EUR |
+| **Total developer revenue** | **2,400.00 EUR** | **22,800.00 EUR** | **12,000.00 EUR** | **129,600.00 EUR** | **36,000.00 EUR** | **384,000.00 EUR** |
 
 ## ROI Calculation
 
 Simple ROI is calculated as:
 
-`ROI = (Total Value - Total Cost) / Total Cost`
+`ROI = (Total Revenue - Total Cost) / Total Cost`
 
-The table below uses the monthly run-rates above and annualizes them over each horizon.
+The table below uses the developer revenue estimates above and the cost estimates in this document.
 
-| Scenario | 12-month cost | 12-month value | 12-month ROI | 36-month cost | 36-month value | 36-month ROI |
+| Scenario | 12-month cost | 12-month revenue | 12-month ROI | 36-month cost | 36-month revenue | 36-month ROI |
 |---|---:|---:|---:|---:|---:|---:|
-| Conservative | 82,800 EUR | 9,000 EUR | -89.1% | 153,600 EUR | 84,600 EUR | -44.9% |
-| Realistic | 69,600 EUR | 43,800 EUR | -37.1% | 208,800 EUR | 489,600 EUR | 134.5% |
-| Optimistic | 76,000 EUR | 129,000 EUR | 69.7% | 338,800 EUR | 1,458,000 EUR | 330.3% |
+| Conservative | 71,400 EUR | 2,400.00 EUR | -96.6% | 125,400 EUR | 22,800.00 EUR | -81.8% |
+| Realistic | 52,800 EUR | 12,000.00 EUR | -77.3% | 144,000 EUR | 129,600.00 EUR | -10.0% |
+| Optimistic | 49,000 EUR | 36,000.00 EUR | -26.5% | 208,600 EUR | 384,000.00 EUR | 84.1% |
 
 ## Possible Next Steps
 
